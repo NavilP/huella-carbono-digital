@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Huella de Carbono Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── BODY & BACKGROUND SCENE ────────────────────────────────────────────── */
+body {
+  font-family: 'Nunito', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 16px 40px;
+  position: relative;
+  overflow-x: hidden;
+  background: #C0D9EC;
+}
+
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ─── BROWSER WINDOW ─────────────────────────────────────────────────────── */
+.browser {
+  position: relative;
+  z-index: 1;
+  width: 900px;
+  max-width: 100%;
+  border-radius: 18px;
+  box-shadow:
+    0 24px 70px rgba(50,70,35,.28),
+    0 4px 16px rgba(50,70,35,.12),
+    0 0 0 1.5px #93B278;
+  overflow: hidden;
+  background: #F0F4EA;
+}
+
+/* Chrome bar */
+.chrome {
+  background: #B4C89A;
+  padding: 8px 12px 0;
+  border-bottom: 2px solid #9AB27E;
+}
+.chrome-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.win-btns { display: flex; gap: 7px; }
+.win-btn {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: none;
+  cursor: default;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.win-btn.close  { background: #D4897A; }
+.win-btn.min    { background: #E8CF78; }
+.win-btn.max    { background: #A4BF84; border: 1.5px solid #82A060; }
+
+/* Tabs */
+.tabs { display: flex; gap: 3px; align-items: flex-end; }
+.tab {
+  padding: 6px 16px 7px;
+  border-radius: 9px 9px 0 0;
+  font-family: 'Comfortaa', sans-serif;
+  font-size: .73rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: #C4D6AE;
+  color: #5A703C;
+  border: 1.5px solid #9AB27E;
+  border-bottom: none;
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+  user-select: none;
+}
+.tab:hover { background: #D0E0BA; }
+.tab.active {
+  background: #F0F4EA;
+  color: #3A5820;
+  font-weight: 700;
+  padding-bottom: 9px;
+  margin-bottom: -2px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Nav bar */
+.nav-bar {
+  background: #C4D6AE;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 2px solid #9AB27E;
+}
+.nav-arrows { display: flex; gap: 5px; }
+.nav-btn {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: #D4E4BC;
+  border: 1.5px solid #9AB27E;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: #5A703C;
+  transition: background .12s;
+  flex-shrink: 0;
+}
+.nav-btn:hover { background: #BECEA8; }
+.nav-btn svg { width: 11px; height: 11px; fill: currentColor; }
+
+.url-bar {
+  flex: 1;
+  background: #EAF0E0;
+  border: 1.5px solid #9AB27E;
+  border-radius: 50px;
+  padding: 4px 14px;
+  font-family: 'Comfortaa', sans-serif;
+  font-size: .72rem;
+  color: #4E6430;
+  text-align: center;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.url-bar svg { width: 11px; height: 11px; fill: #7AA058; flex-shrink: 0; }
+
+/* Progress bar */
+.prog-track { height: 3px; background: #CCD9B4; }
+.prog-fill  {
+  height: 3px;
+  background: linear-gradient(90deg, #6A9848, #A8D07C);
+  transition: width .4s ease;
+  width: 0%;
+}
+
+/* ─── PAGES ──────────────────────────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ─── WELCOME ────────────────────────────────────────────────────────────── */
+.welcome-split {
+  display: grid;
+  grid-template-columns: 42% 58%;
+  min-height: 390px;
+}
+.welcome-art {
+  background: linear-gradient(160deg, #B8CFA0 0%, #94B878 60%, #7AA460 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.welcome-art::before {
+  content: '';
+  position: absolute;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  top: -60px; left: -60px;
+}
+.welcome-art::after {
+  content: '';
+  position: absolute;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  bottom: -40px; right: -30px;
+}
+.welcome-content {
+  padding: 32px 28px;
+  background: #F7F5EE;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 12px;
+}
+.lbl-tag {
+  display: inline-block;
+  background: #B4C89A;
+  color: #3A5820;
+  font-family: 'Comfortaa', sans-serif;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 4px;
+  width: fit-content;
+}
+.welcome-content h1 {
+  font-family: 'Comfortaa', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #3A5820;
+  line-height: 1.3;
+}
+.welcome-content p {
+  font-size: .82rem;
+  color: #627850;
+  line-height: 1.65;
+}
+.sources-pill {
+  background: #EAF0E0;
+  border: 1px solid #B8D09A;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: .67rem;
+  color: #7A9260;
+  line-height: 1.6;
+}
+
+/* ─── BUTTONS ────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 22px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Comfortaa', sans-serif;
+  font-weight: 700;
+  font-size: .8rem;
+  transition: all .18s;
+  letter-spacing: .2px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #78A850 0%, #5A8838 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(88,136,56,.3);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(88,136,56,.4);
+}
+.btn-secondary {
+  background: #EAF0E0;
+  color: #527038;
+  border: 1.5px solid #A8C888;
+}
+.btn-secondary:hover { background: #DDEACC; }
+.btn svg { width: 12px; height: 12px; fill: currentColor; flex-shrink: 0; }
+
+/* ─── QUESTION PAGES ─────────────────────────────────────────────────────── */
+.q-wrap { padding: 22px 26px 16px; }
+
+.q-header {
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1.5px solid #D0DCBC;
+  margin-bottom: 18px;
+}
+.q-icon-box {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #88BC60, #62983E);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(88,136,56,.25);
+}
+.q-icon-box svg { width: 18px; height: 18px; fill: #fff; }
+.q-h-title { font-family: 'Comfortaa', sans-serif; font-weight: 700; color: #3A5820; font-size: 1rem; }
+.q-h-sub   { font-size: .7rem; color: #82987A; margin-top: 1px; }
+
+.q-item { margin-bottom: 16px; }
+.q-lbl  {
+  font-family: 'Comfortaa', sans-serif;
+  font-size: .78rem;
+  font-weight: 600;
+  color: #486030;
+  margin-bottom: 7px;
+  display: block;
+}
+.q-note { font-size: .64rem; color: #92AA7C; margin-top: 4px; font-style: italic; }
+
+/* Pill radio options */
+.pill-group { display: flex; flex-wrap: wrap; gap: 5px; }
+.pill-opt { display: none; }
+.pill-opt + label {
+  padding: 5px 12px;
+  border-radius: 50px;
+  background: #EAF0E0;
+  border: 1.5px solid #BAD09A;
+  font-size: .74rem;
+  color: #527038;
+  cursor: pointer;
+  transition: all .13s;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 500;
+  white-space: nowrap;
+  user-select: none;
+}
+.pill-opt + label:hover { background: #D8E8C4; border-color: #9AB878; }
+.pill-opt:checked + label {
+  background: linear-gradient(135deg, #88BC60, #62983E);
+  border-color: #62983E;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(88,136,56,.28);
+  font-weight: 600;
+}
+
+/* Slider */
+.slider-track { padding: 2px 0 0; }
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 5px;
+  border-radius: 50px;
+  outline: none;
+  cursor: pointer;
+  background: #C8D8A8;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 17px; height: 17px;
+  border-radius: 50%;
+  background: #5A8838;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(88,136,56,.38);
+  cursor: pointer;
+}
+.slider-meta { display: flex; justify-content: space-between; margin-top: 3px; }
+.slider-ends { font-size: .63rem; color: #8A9E74; font-style: italic; }
+.slider-cur  {
+  font-family: 'Comfortaa', sans-serif;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #446030;
+  text-align: center;
+  margin-top: 1px;
+}
+
+/* Grid helpers */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.g-gap { gap: 10px; }
+hr.divider { border: none; border-top: 1px solid #D0DCBC; margin: 14px 0; }
+
+/* Bottom nav bar */
+.q-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 26px 12px;
+  background: #EAF0E0;
+  border-top: 1.5px solid #CCd8B0;
+}
+.step-dots { display: flex; gap: 5px; align-items: center; }
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #BAD09A;
+  transition: all .2s;
+}
+.dot.on { background: #5A8838; width: 16px; border-radius: 50px; }
+
+/* ─── RESULTS ────────────────────────────────────────────────────────────── */
+.res-split {
+  display: grid;
+  grid-template-columns: 38% 37% 25%;
+  min-height: 420px;
+}
+
+/* Left panel */
+.res-left {
+  background: linear-gradient(170deg, #94B870 0%, #78A050 50%, #638840 100%);
+  padding: 22px 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  position: relative; overflow: hidden;
+}
+.res-left::before {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.07);
+  top: -80px; right: -60px;
+}
+
+/* Gauge */
+.gauge-wrap { position: relative; text-align: center; }
+.gauge-svg  { width: 160px; display: block; margin: 0 auto; }
+.gauge-readout {
+  font-family: 'Comfortaa', sans-serif;
+  color: #fff;
+  margin-top: 2px;
+}
+.gauge-num  { font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -1px; }
+.gauge-unit { font-size: .65rem; opacity: .8; margin-top: 1px; }
+
+.res-badge {
+  font-family: 'Comfortaa', sans-serif;
+  font-weight: 700;
+  font-size: .78rem;
+  padding: 5px 18px;
+  border-radius: 50px;
+  color: #fff;
+  text-align: center;
+  background: rgba(255,255,255,.22);
+  border: 1px solid rgba(255,255,255,.35);
+  width: 100%;
+}
+
+/* Trees visual */
+.trees-vis { text-align: center; }
+.trees-vis p {
+  font-size: .65rem;
+  color: rgba(255,255,255,.78);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Equiv cards */
+.equiv-row { width: 100%; display: flex; flex-direction: column; gap: 7px; }
+.equiv-card {
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 10px;
+  padding: 9px 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.equiv-card svg { width: 16px; height: 16px; fill: rgba(255,255,255,.8); flex-shrink: 0; }
+.equiv-text { font-size: .65rem; color: rgba(255,255,255,.75); line-height: 1.3; }
+.equiv-val  {
+  font-family: 'Comfortaa', sans-serif;
+  font-weight: 700;
+  font-size: .9rem;
+  color: #fff;
+}
+
+/* Center panel */
+.res-center {
+  padding: 18px 18px;
+  background: #F7F5EE;
+  border-left: 1.5px solid #C8D8AA;
+  border-right: 1.5px solid #C8D8AA;
+  display: flex; flex-direction: column; gap: 12px;
+  overflow-y: auto; max-height: 420px;
+}
+.res-desc {
+  font-size: .76rem;
+  color: #607848;
+  line-height: 1.6;
+  background: #EAF0E0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid #C0D49A;
+}
+
+/* Score bars */
+.bars { display: flex; flex-direction: column; gap: 9px; }
+.bar-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: .72rem;
+}
+.bar-lbl  { width: 100px; color: #527038; flex-shrink: 0; font-size: .7rem; }
+.bar-track {
+  flex: 1;
+  height: 9px;
+  background: #D4E2BC;
+  border-radius: 50px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 50px;
+  background: linear-gradient(90deg, #62983E, #A0D070);
+  transition: width .9s cubic-bezier(.4,0,.2,1) .15s;
+}
+.bar-val {
+  width: 38px;
+  text-align: right;
+  font-family: 'Comfortaa', sans-serif;
+  font-size: .68rem;
+  font-weight: 700;
+  color: #446030;
+}
+
+/* Annual card */
+.yr-card {
+  background: linear-gradient(135deg, #5A8838 0%, #3E6E22 100%);
+  border-radius: 12px;
+  padding: 14px;
+  color: #fff;
+  text-align: center;
+}
+.yr-num  { font-family: 'Comfortaa', sans-serif; font-size: 1.6rem; font-weight: 700; }
+.yr-sub  { font-size: .65rem; opacity: .78; margin-top: 3px; line-height: 1.5; }
+
+.res-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; }
+.res-btns .btn { font-size: .72rem; padding: 8px 10px; justify-content: center; }
+
+/* Right panel - Tips */
+.res-right {
+  padding: 14px 12px;
+  background: #EAF0E0;
+  display: flex; flex-direction: column; gap: 8px;
+  overflow-y: auto; max-height: 420px;
+}
+.tips-heading {
+  font-family: 'Comfortaa', sans-serif;
+  font-weight: 700;
+  font-size: .72rem;
+  color: #3A5820;
+  margin-bottom: 2px;
+}
+.tip-card {
+  background: #fff;
+  border: 1.5px solid #C8D8A8;
+  border-radius: 11px;
+  padding: 9px 10px;
+  font-size: .69rem;
+  color: #527038;
+  line-height: 1.5;
+}
+.tip-name {
+  font-family: 'Comfortaa', sans-serif;
+  font-weight: 700;
+  font-size: .67rem;
+  color: #5A8838;
+  margin-bottom: 2px;
+  display: flex; align-items: center; gap: 4px;
+}
+.tip-name svg { width: 9px; height: 9px; fill: #5A8838; }
+
+/* Footer */
+.browser-footer {
+  background: #C4D6AE;
+  border-top: 1.5px solid #9AB27E;
+  padding: 5px 14px;
+  text-align: center;
+  font-size: .62rem;
+  color: #6E8856;
+  font-style: italic;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #EAF0E0; }
+::-webkit-scrollbar-thumb { background: #A8C080; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ── BACKGROUND SCENE SVG ─────────────────────────────────────────────── -->
+<svg class="scene" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#B8D0E8"/>
+      <stop offset="38%"  stop-color="#CCE0EE"/>
+      <stop offset="65%"  stop-color="#DCF0E8"/>
+      <stop offset="100%" stop-color="#B8D8A0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="900" fill="url(#sky)"/>
+  <!-- Clouds -->
+  <g opacity=".75" fill="#fff">
+    <ellipse cx="190" cy="118" rx="82" ry="38"/>
+    <ellipse cx="262" cy="106" rx="58" ry="32"/>
+    <ellipse cx="130" cy="128" rx="52" ry="26"/>
+    <ellipse cx="920" cy="88" rx="92" ry="40"/>
+    <ellipse cx="1005" cy="76" rx="62" ry="34"/>
+    <ellipse cx="854" cy="100" rx="54" ry="28"/>
+    <ellipse cx="1310" cy="135" rx="68" ry="33"/>
+    <ellipse cx="1372" cy="124" rx="48" ry="26"/>
+    <ellipse cx="480" cy="70" rx="56" ry="26"/>
+    <ellipse cx="540" cy="60" rx="42" ry="22"/>
+  </g>
+  <!-- Far hills -->
+  <path d="M0 560 Q240 490 480 530 Q720 570 960 505 Q1200 440 1440 510 L1440 900 L0 900Z" fill="#A4C888" opacity=".9"/>
+  <!-- Mid hills -->
+  <path d="M0 640 Q200 585 380 615 Q560 645 740 590 Q920 535 1100 575 Q1280 615 1440 570 L1440 900 L0 900Z" fill="#88B46A"/>
+  <!-- Far-left trees -->
+  <g fill="#5A9048"><ellipse cx="72"  cy="562" rx="26" ry="38"/></g>
+  <g fill="#4A7A38"><rect x="68"  y="592" width="8" height="20"/></g>
+  <g fill="#689858"><ellipse cx="112" cy="556" rx="20" ry="30"/></g>
+  <g fill="#4A7A38"><rect x="109" y="578" width="7" height="15"/></g>
+  <!-- Far-right trees -->
+  <g fill="#5A9048"><ellipse cx="1370" cy="548" rx="28" ry="40"/></g>
+  <g fill="#4A7A38"><rect x="1366" y="580" width="9" height="22"/></g>
+  <g fill="#689858"><ellipse cx="1328" cy="556" rx="22" ry="32"/></g>
+  <g fill="#4A7A38"><rect x="1325" y="580" width="7" height="16"/></g>
+  <!-- Near grass -->
+  <path d="M0 740 Q360 700 720 718 Q1080 736 1440 705 L1440 900 L0 900Z" fill="#6EA84E"/>
+  <rect y="820" width="1440" height="80" fill="#5C9438"/>
+  <!-- Grass texture strokes -->
+  <g stroke="#4A7A2E" stroke-width="1.5" stroke-linecap="round" opacity=".35">
+    <path d="M60  790 Q65 768 70 790"/><path d="M140 800 Q146 776 152 800"/>
+    <path d="M240 784 Q246 760 252 784"/><path d="M350 795 Q356 770 362 795"/>
+    <path d="M460 786 Q467 762 474 786"/><path d="M580 796 Q586 772 592 796"/>
+    <path d="M700 782 Q707 758 714 782"/><path d="M820 793 Q827 768 834 793"/>
+    <path d="M950 786 Q957 762 964 786"/><path d="M1080 794 Q1087 770 1094 794"/>
+    <path d="M1200 783 Q1207 758 1214 783"/><path d="M1360 789 Q1367 764 1374 789"/>
+    <path d="M100 810 Q104 793 108 810"/><path d="M300 815 Q305 797 310 815"/>
+    <path d="M500 808 Q505 790 510 808"/><path d="M750 812 Q755 794 760 812"/>
+    <path d="M1000 810 Q1005 792 1010 810"/><path d="M1250 808 Q1255 790 1260 808"/>
+  </g>
+</svg>
+
+<!-- ── BROWSER WINDOW ────────────────────────────────────────────────────── -->
+<div class="browser">
+
+  <!-- Chrome -->
+  <div class="chrome">
+    <div class="chrome-top">
+      <div class="win-btns">
+        <div class="win-btn close"></div>
+        <div class="win-btn min"></div>
+        <div class="win-btn max"></div>
+      </div>
+    </div>
+    <div class="tabs" id="tab-bar">
+      <div class="tab active" onclick="gotoPage(0)">Inicio</div>
+      <div class="tab" onclick="gotoPage(1)">Dispositivos</div>
+      <div class="tab" onclick="gotoPage(2)">Redes</div>
+      <div class="tab" onclick="gotoPage(3)">Streaming</div>
+      <div class="tab" onclick="gotoPage(4)">Habitos</div>
+      <div class="tab" onclick="gotoPage(5)">Resultados</div>
+    </div>
+  </div>
+
+  <!-- Nav bar -->
+  <div class="nav-bar">
+    <div class="nav-arrows">
+      <button class="nav-btn" onclick="gotoPage(Math.max(0,currentPage-1))">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+      </button>
+      <button class="nav-btn" onclick="gotoPage(Math.min(5,currentPage+1))">
+        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </button>
+      <button class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      </button>
+      <button class="nav-btn">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </button>
+    </div>
+    <div class="url-bar">
+      <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 19.82L5.71 21l1-2 .91.3C9 18 11 17 14 17c3 0 5.88-1.62 7.11-4.11C22.33 10.7 20.5 7.4 17 8z"/></svg>
+      <span id="url-bar-text">huella-digital.papalotla.mx</span>
+    </div>
+    <button class="nav-btn">
+      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </button>
+  </div>
+
+  <!-- Progress -->
+  <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- PAGE 0 – BIENVENIDA                              -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="page active" id="page-0">
+    <div class="welcome-split">
+      <!-- Art panel -->
+      <div class="welcome-art">
+        <svg viewBox="0 0 260 300" xmlns="http://www.w3.org/2000/svg" style="width:85%;max-width:220px;position:relative;z-index:1;">
+          <!-- Background glow -->
+          <circle cx="130" cy="148" r="108" fill="rgba(255,255,255,.14)"/>
+          <!-- Big leaf -->
+          <path d="M130 258 Q56 192 68 112 Q80 50 130 38 Q180 50 192 112 Q204 192 130 258Z"
+                fill="#5A8A40" stroke="#4A7030" stroke-width="1.5"/>
+          <!-- Leaf veins -->
+          <path d="M130 258 L130 38" stroke="rgba(200,240,160,.5)" stroke-width="1.8" fill="none"/>
+          <path d="M130 165 Q102 148 84 136" stroke="rgba(200,240,160,.4)" stroke-width="1.3" fill="none"/>
+          <path d="M130 182 Q158 162 176 150" stroke="rgba(200,240,160,.4)" stroke-width="1.3" fill="none"/>
+          <path d="M130 128 Q108 114 92 103" stroke="rgba(200,240,160,.35)" stroke-width="1.1" fill="none"/>
+          <path d="M130 142 Q154 127 168 116" stroke="rgba(200,240,160,.35)" stroke-width="1.1" fill="none"/>
+          <path d="M130 98 Q114 88 104 78" stroke="rgba(200,240,160,.3)" stroke-width="1" fill="none"/>
+          <!-- Small flowers -->
+          <g transform="translate(76,108)">
+            <circle cx="0" cy="0" r="5" fill="#ECD880"/><circle cx="10" cy="-6" r="3.5" fill="#EAD070"/>
+            <circle cx="-7" cy="-8" r="4" fill="#F0E090"/>
+          </g>
+          <g transform="translate(178,148)">
+            <circle cx="0" cy="0" r="4" fill="#E8B8A8"/><circle cx="-9" cy="5" r="3" fill="#F0C0B0"/>
+            <circle cx="7" cy="7" r="2.5" fill="#E8A898"/>
+          </g>
+          <!-- Bunny -->
+          <g transform="translate(102,200)" fill="#F0EDE4" stroke="#7A9262" stroke-width="1.2">
+            <ellipse cx="16" cy="24" rx="15" ry="13"/>
+            <ellipse cx="16" cy="11" rx="10" ry="12"/>
+            <ellipse cx="8"  cy="-1" rx="4.5" ry="10"/>
+            <ellipse cx="24" cy="-1" rx="4.5" ry="10"/>
+            <circle  cx="13" cy="12" r="1.5" fill="#C8A0A0" stroke="none"/>
+            <circle  cx="19" cy="12" r="1.5" fill="#C8A0A0" stroke="none"/>
+            <ellipse cx="16" cy="15" rx="3" ry="1.8" fill="#C8A0A0" stroke="none"/>
+            <path d="M13 17 Q16 20 19 17" fill="none" stroke="#C8A0A0" stroke-width=".8"/>
+          </g>
+          <!-- CO2 bubbles -->
+          <circle cx="200" cy="78" r="2"   fill="rgba(255,255,255,.5)"/>
+          <circle cx="208" cy="65" r="1.5" fill="rgba(255,255,255,.4)"/>
+          <circle cx="194" cy="58" r="1"   fill="rgba(255,255,255,.3)"/>
+          <text x="188" y="92" font-family="Comfortaa,sans-serif" font-size="9" fill="rgba(255,255,255,.65)" font-weight="600">CO₂</text>
+        </svg>
+      </div>
+      <!-- Content -->
+      <div class="welcome-content">
+        <span class="lbl-tag">Colegio Alemán Freinet</span>
+        <h1>Cuanto CO₂ genera<br>tu vida digital</h1>
+        <p>Cada vez que abres Instagram, escuchas Spotify o ves Netflix, tu dispositivo consume energia y genera dioxido de carbono.</p>
+        
+        <div>
+          <button class="btn btn-primary" onclick="gotoPage(1)">
+            <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 19.82L5.71 21l1-2 .91.3C9 18 11 17 14 17c3 0 5.88-1.62 7.11-4.11C22.33 10.7 20.5 7.4 17 8z"/></svg>
+            Comenzar cálculo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- PAGE 1 – DISPOSITIVOS                            -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="page" id="page-1">
+    <div class="q-wrap">
+      <div class="q-header">
+        <div class="q-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M15.5 1h-8A2.5 2.5 0 005 3.5v17A2.5 2.5 0 007.5 23h8a2.5 2.5 0 002.5-2.5v-17A2.5 2.5 0 0015.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5S10.67 19 11.5 19s1.5.67 1.5 1.5S12.33 22 11.5 22zm4.5-4H7V4h9v14z"/></svg>
+        </div>
+        <div>
+          <div class="q-h-title">Tus dispositivos</div>
+          <div class="q-h-sub">La fabricación representa hasta el 80% de la huella total de vida de un dispositivo</div>
+        </div>
+      </div>
+
+      <div class="q-item">
+        <label class="q-lbl">¿Cuántos celulares tienen en tu casa (propios o de familia)?</label>
+        <div class="slider-track">
+          <input type="range" id="phones" min="0" max="6" value="2"
+            oninput="sliderUpdate('phones',this.value,['ninguno','1','2','3','4','5','6 o mas'])">
+          <div class="slider-meta">
+            <span class="slider-ends">0</span>
+            <span class="slider-cur" id="phones-cur">2 celulares</span>
+            <span class="slider-ends">6+</span>
+          </div>
+        </div>
+        <p class="q-note">Fuente: IDC Lifecycle Assessment (2021) — ~63.8 g CO2/dia por celular amortizado</p>
+      </div>
+
+      <hr class="divider">
+
+      <div class="g2">
+        <div class="q-item" style="margin:0">
+          <label class="q-lbl">¿Cuántas laptops o computadoras?</label>
+          <div class="slider-track">
+            <input type="range" id="laptops" min="0" max="4" value="1"
+              oninput="sliderUpdate('laptops',this.value,['ninguna','1','2','3','4 o mas'])">
+            <div class="slider-meta">
+              <span class="slider-ends">0</span>
+              <span class="slider-cur" id="laptops-cur">1 laptop</span>
+              <span class="slider-ends">4+</span>
+            </div>
+          </div>
+        </div>
+        <div class="q-item" style="margin:0">
+          <label class="q-lbl">¿Cuántas tablets o iPads?</label>
+          <div class="slider-track">
+            <input type="range" id="tablets" min="0" max="3" value="0"
+              oninput="sliderUpdate('tablets',this.value,['ninguna','1','2','3 o mas'])">
+            <div class="slider-meta">
+              <span class="slider-ends">0</span>
+              <span class="slider-cur" id="tablets-cur">0 tablets</span>
+              <span class="slider-ends">3+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="g2">
+        <div class="q-item" style="margin:0">
+          <label class="q-lbl">¿Cuántas televisiones o smart TVs?</label>
+          <div class="slider-track">
+            <input type="range" id="tvs" min="0" max="4" value="1"
+              oninput="sliderUpdate('tvs',this.value,['ninguna','1','2','3','4 o mas'])">
+            <div class="slider-meta">
+              <span class="slider-ends">0</span>
+              <span class="slider-cur" id="tvs-cur">1 TV</span>
+              <span class="slider-ends">4+</span>
+            </div>
+          </div>
+        </div>
+        <div class="q-item" style="margin:0">
+          <label class="q-lbl">¿Tienes consolas de videojuegos (PS/Xbox/Switch)?</label>
+          <div class="slider-track">
+            <input type="range" id="consolas" min="0" max="3" value="0"
+              oninput="sliderUpdate('consolas',this.value,['ninguna','1','2','3 o mas'])">
+            <div class="slider-meta">
+              <span class="slider-ends">0</span>
+              <span class="slider-cur" id="consolas-cur">0 consolas</span>
+              <span class="slider-ends">3+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="q-item" style="margin:0">
+        <label class="q-lbl">¿Tienes audífonos inalámbricos o AirPods?</label>
+        <div class="pill-group">
+          <input type="radio" name="audifonos" id="au0" class="pill-opt" value="0" checked><label for="au0">No tengo</label>
+          <input type="radio" name="audifonos" id="au1" class="pill-opt" value="1"><label for="au1">Tengo 1 par</label>
+          <input type="radio" name="audifonos" id="au2" class="pill-opt" value="2"><label for="au2">Tengo 2 o más</label>
+        </div>
+      </div>
+    </div>
+    <div class="q-bottom">
+      <button class="btn btn-secondary" onclick="gotoPage(0)">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        Anterior
+      </button>
+      <div class="step-dots">
+        <div class="dot on"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <button class="btn btn-primary" onclick="gotoPage(2)">
+        Siguiente
+        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- PAGE 2 – REDES SOCIALES                          -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="page" id="page-2">
+    <div class="q-wrap">
+      <div class="q-header">
+        <div class="q-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+        <div>
+          <div class="q-h-title">Redes sociales y mensajería</div>
+          <div class="q-h-sub">Cada mensaje requiere servidores activos las 24 horas del día en todo el mundo</div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="q-item">
+          <label class="q-lbl">Tiempo en Instagram al día</label>
+          <div class="pill-group">
+            <input type="radio" name="ig" id="ig0" class="pill-opt" value="0" checked><label for="ig0">No uso</label>
+            <input type="radio" name="ig" id="ig1" class="pill-opt" value="0.125"><label for="ig1">&lt;15 min</label>
+            <input type="radio" name="ig" id="ig2" class="pill-opt" value="0.375"><label for="ig2">15-30 min</label>
+            <input type="radio" name="ig" id="ig3" class="pill-opt" value="0.75"><label for="ig3">30-60 min</label>
+            <input type="radio" name="ig" id="ig4" class="pill-opt" value="1.5"><label for="ig4">1-2 horas</label>
+            <input type="radio" name="ig" id="ig5" class="pill-opt" value="2.5"><label for="ig5">2-3 hrs</label>
+            <input type="radio" name="ig" id="ig6" class="pill-opt" value="3.5"><label for="ig6">+3 hrs</label>
+          </div>
+          <p class="q-note">~1.5 g CO2/hora — The Shift Project (2019)</p>
+        </div>
+        <div class="q-item">
+          <label class="q-lbl">Tiempo en TikTok al día</label>
+          <div class="pill-group">
+            <input type="radio" name="tt" id="tt0" class="pill-opt" value="0" checked><label for="tt0">No uso</label>
+            <input type="radio" name="tt" id="tt1" class="pill-opt" value="0.125"><label for="tt1">&lt;15 min</label>
+            <input type="radio" name="tt" id="tt2" class="pill-opt" value="0.375"><label for="tt2">15-30 min</label>
+            <input type="radio" name="tt" id="tt3" class="pill-opt" value="0.75"><label for="tt3">30-60 min</label>
+            <input type="radio" name="tt" id="tt4" class="pill-opt" value="1.5"><label for="tt4">1-2 horas</label>
+            <input type="radio" name="tt" id="tt5" class="pill-opt" value="2.5"><label for="tt5">2-3 hrs</label>
+            <input type="radio" name="tt" id="tt6" class="pill-opt" value="3.5"><label for="tt6">+3 hrs</label>
+          </div>
+          <p class="q-note">~2.6 g CO2/hora — Greenspector (2021)</p>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="q-item">
+        <label class="q-lbl">¿Cómo usas WhatsApp principalmente?</label>
+        <div class="pill-group">
+          <input type="radio" name="wa_tipo" id="wt0" class="pill-opt" value="0.2" checked><label for="wt0">Solo texto</label>
+          <input type="radio" name="wa_tipo" id="wt1" class="pill-opt" value="0.6"><label for="wt1">Texto y fotos</label>
+          <input type="radio" name="wa_tipo" id="wt2" class="pill-opt" value="4.0"><label for="wt2">Notas de voz</label>
+          <input type="radio" name="wa_tipo" id="wt3" class="pill-opt" value="36.0"><label for="wt3">Videollamadas frecuentes</label>
+        </div>
+      </div>
+      <div class="q-item">
+        <label class="q-lbl">Total de horas en WhatsApp al día</label>
+        <div class="pill-group">
+          <input type="radio" name="wa_h" id="wh0" class="pill-opt" value="0.25" checked><label for="wh0">&lt;30 min</label>
+          <input type="radio" name="wa_h" id="wh1" class="pill-opt" value="0.75"><label for="wh1">30-60 min</label>
+          <input type="radio" name="wa_h" id="wh2" class="pill-opt" value="1.5"><label for="wh2">1-2 horas</label>
+          <input type="radio" name="wa_h" id="wh3" class="pill-opt" value="2.5"><label for="wh3">2-3 horas</label>
+          <input type="radio" name="wa_h" id="wh4" class="pill-opt" value="3.5"><label for="wh4">+3 horas</label>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="q-item" style="margin:0">
+        <label class="q-lbl">Horas en videollamadas (Zoom, Meet, FaceTime) al día</label>
+        <div class="pill-group">
+          <input type="radio" name="vl" id="vl0" class="pill-opt" value="0" checked><label for="vl0">No uso</label>
+          <input type="radio" name="vl" id="vl1" class="pill-opt" value="0.25"><label for="vl1">&lt;30 min</label>
+          <input type="radio" name="vl" id="vl2" class="pill-opt" value="0.75"><label for="vl2">30-60 min</label>
+          <input type="radio" name="vl" id="vl3" class="pill-opt" value="1.5"><label for="vl3">1-2 horas</label>
+          <input type="radio" name="vl" id="vl4" class="pill-opt" value="2.5"><label for="vl4">+2 horas</label>
+        </div>
+        <p class="q-note">~36 g CO2/hora — BBC/Carbon Trust (2021) — apagar cámara reduce hasta 96% las emisiones</p>
+      </div>
+    </div>
+    <div class="q-bottom">
+      <button class="btn btn-secondary" onclick="gotoPage(1)">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        Anterior
+      </button>
+      <div class="step-dots">
+        <div class="dot"></div><div class="dot on"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <button class="btn btn-primary" onclick="gotoPage(3)">
+        Siguiente
+        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- PAGE 3 – STREAMING & GAMING                      -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="page" id="page-3">
+    <div class="q-wrap">
+      <div class="q-header">
+        <div class="q-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zM8 15l5-3-5-3v6z"/></svg>
+        </div>
+        <div>
+          <div class="q-h-title">Streaming y entretenimiento</div>
+          <div class="q-h-sub">El video en internet representa el 60% de todo el trafico global</div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="q-item">
+          <label class="q-lbl">Horas de música streaming por SEMANA (Spotify, Apple Music...)</label>
+          <div class="pill-group">
+            <input type="radio" name="mus" id="ms0" class="pill-opt" value="0" checked><label for="ms0">No escucho</label>
+            <input type="radio" name="mus" id="ms1" class="pill-opt" value="0.071"><label for="ms1">&lt;1 hr</label>
+            <input type="radio" name="mus" id="ms2" class="pill-opt" value="0.286"><label for="ms2">1-3 hrs</label>
+            <input type="radio" name="mus" id="ms3" class="pill-opt" value="0.714"><label for="ms3">3-7 hrs</label>
+            <input type="radio" name="mus" id="ms4" class="pill-opt" value="1.5"><label for="ms4">7-14 hrs</label>
+            <input type="radio" name="mus" id="ms5" class="pill-opt" value="2.43"><label for="ms5">+14 hrs</label>
+          </div>
+          <p class="q-note">~28 g CO2/hora — Spotify Sustainability Report (2021)</p>
+        </div>
+        <div class="q-item">
+          <label class="q-lbl">Horas de YouTube por SEMANA</label>
+          <div class="pill-group">
+            <input type="radio" name="yt" id="yt0" class="pill-opt" value="0" checked><label for="yt0">No veo</label>
+            <input type="radio" name="yt" id="yt1" class="pill-opt" value="0.071"><label for="yt1">&lt;1 hr</label>
+            <input type="radio" name="yt" id="yt2" class="pill-opt" value="0.286"><label for="yt2">1-3 hrs</label>
+            <input type="radio" name="yt" id="yt3" class="pill-opt" value="0.714"><label for="yt3">3-7 hrs</label>
+            <input type="radio" name="yt" id="yt4" class="pill-opt" value="1.5"><label for="yt4">7-14 hrs</label>
+            <input type="radio" name="yt" id="yt5" class="pill-opt" value="2.43"><label for="yt5">+14 hrs</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-item">
+        <label class="q-lbl">Calidad de video en YouTube</label>
+        <div class="pill-group">
+          <input type="radio" name="ytq" id="yq0" class="pill-opt" value="18" checked><label for="yq0">Baja (360p / 480p)</label>
+          <input type="radio" name="ytq" id="yq1" class="pill-opt" value="36"><label for="yq1">Normal (HD 720p)</label>
+          <input type="radio" name="ytq" id="yq2" class="pill-opt" value="72"><label for="yq2">Alta (1080p o 4K)</label>
+        </div>
+        <p class="q-note">18 - 72 g CO2/hora segun calidad — Carbon Trust Digital Footprint Study (2021)</p>
+      </div>
+
+      <hr class="divider">
+
+      <div class="g2">
+        <div class="q-item" style="margin:0">
+          <label class="q-lbl">Horas de Netflix / Disney+ / streaming por SEMANA</label>
+          <div class="pill-group">
+            <input type="radio" name="nf" id="nf0" class="pill-opt" value="0" checked><label for="nf0">No veo</label>
+            <input type="radio" name="nf" id="nf1" class="pill-opt" value="0.071"><label for="nf1">&lt;1 hr</label>
+            <input type="radio" name="nf" id="nf2" class="pill-opt" value="0.286"><label for="nf2">1-3 hrs</label>
+            <input type="radio" name="nf" id="nf3" class="pill-opt" value="0.714"><label for="nf3">3-7 hrs</label>
+            <input type="radio" name="nf" id="nf4" class="pill-opt" value="1.5"><label for="nf4">7-14 hrs</label>
+            <input type="radio" name="nf" id="nf5" class="pill-opt" value="2.43"><label for="nf5">+14 hrs</label>
+          </div>
+          <p class="q-note">~36 g CO2/hora — Netflix Environmental Report (2022)</p>
+        </div>
+        <div class="q-item" style="margin:0">
+          <label class="q-lbl">Horas de videojuegos por SEMANA</label>
+          <div class="pill-group">
+            <input type="radio" name="gm" id="gm0" class="pill-opt" value="0" checked><label for="gm0">No juego</label>
+            <input type="radio" name="gm" id="gm1" class="pill-opt" value="0.071"><label for="gm1">&lt;1 hr</label>
+            <input type="radio" name="gm" id="gm2" class="pill-opt" value="0.286"><label for="gm2">1-3 hrs</label>
+            <input type="radio" name="gm" id="gm3" class="pill-opt" value="0.714"><label for="gm3">3-7 hrs</label>
+            <input type="radio" name="gm" id="gm4" class="pill-opt" value="1.5"><label for="gm4">7-14 hrs</label>
+            <input type="radio" name="gm" id="gm5" class="pill-opt" value="2.43"><label for="gm5">+14 hrs</label>
+          </div>
+          <label class="q-lbl" style="margin-top:8px">Dispositivo de juego principal</label>
+          <div class="pill-group">
+            <input type="radio" name="gmdev" id="gd0" class="pill-opt" value="5"   checked><label for="gd0">Celular</label>
+            <input type="radio" name="gmdev" id="gd1" class="pill-opt" value="35"        ><label for="gd1">Computadora</label>
+            <input type="radio" name="gmdev" id="gd2" class="pill-opt" value="160"       ><label for="gd2">Consola</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="q-bottom">
+      <button class="btn btn-secondary" onclick="gotoPage(2)">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        Anterior
+      </button>
+      <div class="step-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot on"></div><div class="dot"></div>
+      </div>
+      <button class="btn btn-primary" onclick="gotoPage(4)">
+        Siguiente
+        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- PAGE 4 – HABITOS                                 -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="page" id="page-4">
+    <div class="q-wrap">
+      <div class="q-header">
+        <div class="q-icon-box">
+          <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM13 18h-2v-2h2v2zm0-4h-2V9h2v5z"/></svg>
+        </div>
+        <div>
+          <div class="q-h-title">Hábitos de carga y uso diario</div>
+          <div class="q-h-sub">Los pequenos hábitos cotidianos suman mucho mas de lo que imaginamos</div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="q-item">
+          <label class="q-lbl">¿Cuántas veces cargas tu celular al día?</label>
+          <div class="pill-group">
+            <input type="radio" name="carg" id="cr0" class="pill-opt" value="0"  checked><label for="cr0">No tengo celular</label>
+            <input type="radio" name="carg" id="cr1" class="pill-opt" value="1"        ><label for="cr1">1 vez</label>
+            <input type="radio" name="carg" id="cr2" class="pill-opt" value="2"        ><label for="cr2">2 veces</label>
+            <input type="radio" name="carg" id="cr3" class="pill-opt" value="3"        ><label for="cr3">3 o mas</label>
+          </div>
+          <p class="q-note">~4.5 g CO2 por carga completa — Factor eléctrico México: 0.454 kg CO2/kWh (SENER 2020)</p>
+        </div>
+        <div class="q-item">
+          <label class="q-lbl">Horas al día en laptop o computadora (sin contar juegos)</label>
+          <div class="pill-group">
+            <input type="radio" name="laph" id="lh0" class="pill-opt" value="0"  checked><label for="lh0">No tengo</label>
+            <input type="radio" name="laph" id="lh1" class="pill-opt" value="0.5"       ><label for="lh1">&lt;1 hr</label>
+            <input type="radio" name="laph" id="lh2" class="pill-opt" value="1.5"       ><label for="lh2">1-2 hrs</label>
+            <input type="radio" name="laph" id="lh3" class="pill-opt" value="3.0"       ><label for="lh3">2-4 hrs</label>
+            <input type="radio" name="laph" id="lh4" class="pill-opt" value="5.0"       ><label for="lh4">4-6 hrs</label>
+            <input type="radio" name="laph" id="lh5" class="pill-opt" value="7.0"       ><label for="lh5">+6 hrs</label>
+          </div>
+          <p class="q-note">~35 g CO2/hora — Laptop promedio ~75W de consumo</p>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="q-item">
+        <label class="q-lbl">¿Dejas dispositivos cargando toda la noche aunque ya esten al 100%?</label>
+        <div class="pill-group">
+          <input type="radio" name="noch" id="nc0" class="pill-opt" value="0"   checked><label for="nc0">Nunca</label>
+          <input type="radio" name="noch" id="nc1" class="pill-opt" value="1.5"        ><label for="nc1">A veces</label>
+          <input type="radio" name="noch" id="nc2" class="pill-opt" value="3.0"        ><label for="nc2">Casi siempre</label>
+          <input type="radio" name="noch" id="nc3" class="pill-opt" value="5.0"        ><label for="nc3">Siempre</label>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="g2">
+        <div class="q-item" style="margin:0">
+          <label class="q-lbl">Correos electronicos que envias o recibes al día</label>
+          <div class="pill-group">
+            <input type="radio" name="eml" id="em0" class="pill-opt" value="0"  checked><label for="em0">Casi ninguno</label>
+            <input type="radio" name="eml" id="em1" class="pill-opt" value="3"         ><label for="em1">1-5</label>
+            <input type="radio" name="eml" id="em2" class="pill-opt" value="12"        ><label for="em2">5-20</label>
+            <input type="radio" name="eml" id="em3" class="pill-opt" value="35"        ><label for="em3">20-50</label>
+            <input type="radio" name="eml" id="em4" class="pill-opt" value="75"        ><label for="em4">+50</label>
+          </div>
+          <p class="q-note">~0.3 g CO2 por email — Mike Berners-Lee "How Bad Are Bananas?" (2020)</p>
+        </div>
+        <div class="q-item" style="margin:0">
+          <label class="q-lbl">¿Qué haces con tus dispositivos cuando ya no funcionan?</label>
+          <div class="pill-group">
+            <input type="radio" name="disp" id="dp0" class="pill-opt" value="guardo"  checked><label for="dp0">Los guardo</label>
+            <input type="radio" name="disp" id="dp1" class="pill-opt" value="regalo"        ><label for="dp1">Los regalo o vendo</label>
+            <input type="radio" name="disp" id="dp2" class="pill-opt" value="reciclo"       ><label for="dp2">Los reciclo</label>
+            <input type="radio" name="disp" id="dp3" class="pill-opt" value="basura"        ><label for="dp3">Los tiro a la basura</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="q-bottom">
+      <button class="btn btn-secondary" onclick="gotoPage(3)">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        Anterior
+      </button>
+      <div class="step-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot on"></div>
+      </div>
+      <button class="btn btn-primary" onclick="calcAndShow()">
+        Ver mi huella
+        <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 19.82L5.71 21l1-2 .91.3C9 18 11 17 14 17c3 0 5.88-1.62 7.11-4.11C22.33 10.7 20.5 7.4 17 8z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- PAGE 5 – RESULTADOS                              -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="page" id="page-5">
+    <div class="res-split">
+
+      <!-- LEFT -->
+      <div class="res-left">
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 160 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"   stop-color="#A8E070"/>
+                <stop offset="50%"  stop-color="#E8D060"/>
+                <stop offset="100%" stop-color="#D07050"/>
+              </linearGradient>
+            </defs>
+            <!-- Track -->
+            <path d="M16 86 A 64 64 0 0 1 144 86"
+              fill="none" stroke="rgba(255,255,255,.18)" stroke-width="13" stroke-linecap="round"/>
+            <!-- Fill (dasharray updated by JS) -->
+            <path id="g-fill" d="M16 86 A 64 64 0 0 1 144 86"
+              fill="none" stroke="url(#gGrad)" stroke-width="13" stroke-linecap="round"
+              stroke-dasharray="0 201" style="transition:stroke-dasharray .9s ease .1s"/>
+            <!-- Needle center -->
+            <circle cx="80" cy="86" r="5" fill="rgba(255,255,255,.35)"/>
+          </svg>
+          <div class="gauge-readout">
+            <div class="gauge-num" id="g-num">-</div>
+            <div class="gauge-unit">g CO2e por día</div>
+          </div>
+        </div>
+
+        <div class="res-badge" id="r-badge">Calculando...</div>
+
+        <!-- Trees -->
+        <div class="trees-vis">
+          <svg id="trees-svg" viewBox="0 0 132 52" width="132" xmlns="http://www.w3.org/2000/svg"></svg>
+          <p id="trees-lbl"></p>
+        </div>
+
+        <!-- Equivalencias -->
+        <div class="equiv-row">
+          <div class="equiv-card">
+            <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+            <div>
+              <div class="equiv-text">Es como si viajaras</div>
+              <div class="equiv-val" id="eq-auto">- km</div>
+              <div class="equiv-text">en auto, cada día</div>
+            </div>
+          </div>
+          <div class="equiv-card">
+            <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zM8 15l5-3-5-3v6z"/></svg>
+            <div>
+              <div class="equiv-text">Es como si vieras</div>
+              <div class="equiv-val" id="eq-nf">- hrs</div>
+              <div class="equiv-text">de Netflix</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER -->
+      <div class="res-center">
+        <span class="lbl-tag" id="r-cat-tag">...</span>
+        <div class="res-desc" id="r-desc"></div>
+
+        <div class="bars">
+          <div class="bar-item">
+            <div class="bar-lbl">Fabricación</div>
+            <div class="bar-track"><div class="bar-fill" id="bf-fab" style="width:0%"></div></div>
+            <div class="bar-val" id="bv-fab">0g</div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-lbl">Redes sociales</div>
+            <div class="bar-track"><div class="bar-fill" id="bf-red" style="width:0%"></div></div>
+            <div class="bar-val" id="bv-red">0g</div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-lbl">Streaming</div>
+            <div class="bar-track"><div class="bar-fill" id="bf-str" style="width:0%"></div></div>
+            <div class="bar-val" id="bv-str">0g</div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-lbl">Carga y uso</div>
+            <div class="bar-track"><div class="bar-fill" id="bf-uso" style="width:0%"></div></div>
+            <div class="bar-val" id="bv-uso">0g</div>
+          </div>
+        </div>
+
+        <div class="yr-card">
+          <div style="font-size:.65rem;opacity:.75;margin-bottom:4px;">Tu huella digital al año</div>
+          <div class="yr-num" id="yr-num">- kg CO2e</div>
+          <div class="yr-sub" id="yr-sub"></div>
+        </div>
+
+        <div class="res-btns">
+          <button class="btn btn-secondary" onclick="gotoPage(1)">
+            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            Recalcular
+          </button>
+          <button class="btn btn-primary" onclick="resetCalc()">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Nueva cálculo
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Tips -->
+      <div class="res-right" id="tips-panel">
+        <div class="tips-heading">Recomendaciones</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="browser-footer">
+    Calculadora de Huella de Carbono Digital &middot; Colegio Alemán Freinet &middot; Datos basados en fuentes académicas verificadas 2021-2022
+  </div>
+</div>
+
+<!-- ── JAVASCRIPT ──────────────────────────────────────────────────────────── -->
+<script>
+const URLS = [
+  'huella-digital.papalotla.mx',
+  'huella-digital.papalotla.mx/dispositivos',
+  'huella-digital.papalotla.mx/redes-sociales',
+  'huella-digital.papalotla.mx/streaming',
+  'huella-digital.papalotla.mx/habitos',
+  'huella-digital.papalotla.mx/mi-resultado',
+];
+let currentPage = 0;
+
+function gotoPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + n).classList.add('active');
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === n));
+  document.getElementById('url-bar-text').textContent = URLS[n];
+  const pct = n === 0 ? 0 : (n / 5) * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  currentPage = n;
+}
+
+/* ─── Slider update ───────────────────────────────────────────────────────── */
+function sliderUpdate(id, val, labels) {
+  const i = parseInt(val);
+
+  const units = { 
+    phones: { singular: 'celular', plural: 'celulares' },
+    laptops: { singular: 'laptop', plural: 'laptops' },
+    tablets: { singular: 'tablet', plural: 'tablets' },
+    tvs: { singular: 'TV', plural: 'TVs' },
+    consolas: { singular: 'consola', plural: 'consolas' }
+  };
+
+  const u = units[id] || { singular: '', plural: '' };
+
+  const label = i === 0 
+    ? 'ninguno' 
+    : (i === 1 
+        ? `1 ${u.singular}` 
+        : `${labels[i]} ${u.plural}`);
+
+  document.getElementById(id + '-cur').textContent = label;
+
+  const pct = (i / (labels.length - 1)) * 100;
+
+  document.getElementById(id).style.background =
+    `linear-gradient(90deg, #78A850 ${pct}%, #C8D8A8 ${pct}%)`;
+}
+
+/* Init all sliders */
+(function() {
+  const cfg = {
+    phones:  { max:6, labels:['0','1','2','3','4','5','6+'] },
+    laptops: { max:4, labels:['0','1','2','3','4+'] },
+    tablets: { max:3, labels:['0','1','2','3+'] },
+    tvs:     { max:4, labels:['0','1','2','3','4+'] },
+    consolas:{ max:3, labels:['0','1','2','3+'] },
+  };
+  Object.entries(cfg).forEach(([id, c]) => sliderUpdate(id, document.getElementById(id).value, c.labels));
+})();
+
+/* ─── Helpers ─────────────────────────────────────────────────────────────── */
+function rv(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? parseFloat(el.value) : 0;
+}
+function sv(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+/* ─── Calculation ──────────────────────────────────────────────────────────── */
+function calcHuella() {
+  // Fabricacion (g CO2/dia amortizado)
+  const FAB = { phone:63.80, laptop:82.20, tablet:68.50, tv:51.40, consola:58.70, audif:6.84 };
+  const fab =
+    sv('phones')  * FAB.phone +
+    sv('laptops') * FAB.laptop +
+    sv('tablets') * FAB.tablet +
+    sv('tvs')     * FAB.tv +
+    sv('consolas')* FAB.consola +
+    rv('audifonos')* FAB.audif;
+
+  // Redes sociales (g CO2/dia)
+  const ig    = rv('ig') * 1.5;
+  const tt    = rv('tt') * 2.63;
+  const wa    = rv('wa_h') * rv('wa_tipo');
+  const vl    = rv('vl') * 36;
+  const redes = ig + tt + wa + vl;
+
+  // Streaming (g CO2/dia = horas/dia * emision/hr)
+  const mus = rv('mus') * 28;
+  const yt  = rv('yt')  * rv('ytq');
+  const nf  = rv('nf')  * 36;
+  const gm  = rv('gm')  * rv('gmdev');
+  const str = mus + yt + nf + gm;
+
+  // Carga y uso (g CO2/dia)
+  const carg = rv('carg') * 4.5;
+  const lap  = rv('laph') * 35;
+  const noch = rv('noch');
+  const eml  = rv('eml') * 0.3;
+  const uso  = carg + lap + noch + eml;
+
+  return { total: fab+redes+str+uso, fab, redes, str, uso };
+}
+
+/* ─── Render results ───────────────────────────────────────────────────────── */
+function calcAndShow() {
+  const { total, fab, redes, str, uso } = calcHuella();
+
+  // Gauge (semicircle arc ≈ 201)
+  const pct  = Math.min(total / 1000, 1);
+  const fill = pct * 201;
+  document.getElementById('g-fill').setAttribute('stroke-dasharray', `${fill} ${201 - fill}`);
+  document.getElementById('g-num').textContent = Math.round(total);
+
+  // Category
+  let cat, desc;
+  if (total < 100) {
+    cat  = 'Huella Mínima';
+    desc = 'Tus hábitos digitales tienen un impacto muy bajo. Eres un ejemplo a seguir.';
+  } else if (total < 250) {
+    cat  = 'Huella Baja';
+    desc = 'Tu huella esta por debajo del promedio. Con pequenos ajustes puedes hacerla aun menor.';
+  } else if (total < 500) {
+    cat  = 'Huella Media';
+    desc = 'Tu huella es similar al promedio de un estudiante. Hay oportunidades claras de mejora.';
+  } else if (total < 900) {
+    cat  = 'Huella Alta';
+    desc = 'Tu huella digital es significativa. El streaming y los dispositivos son tus mayores fuentes.';
+  } else {
+    cat  = 'Huella Muy Alta';
+    desc = 'Tu huella es muy alta. Pequeños cambios en tus hábitos pueden hacer una gran diferencia.';
+  }
+  document.getElementById('r-badge').textContent   = cat;
+  document.getElementById('r-cat-tag').textContent = cat;
+  document.getElementById('r-desc').textContent    = desc;
+
+  // Score bars
+  const mx = Math.max(fab, redes, str, uso, 1);
+  function setBar(bf, bv, val) {
+    document.getElementById(bf).style.width = (val / mx * 100) + '%';
+    document.getElementById(bv).textContent = Math.round(val) + 'g';
+  }
+  setTimeout(() => {
+    setBar('bf-fab','bv-fab', fab);
+    setBar('bf-red','bv-red', redes);
+    setBar('bf-str','bv-str', str);
+    setBar('bf-uso','bv-uso', uso);
+  }, 80);
+
+  // Annual
+  const kgYr    = total * 365 / 1000;
+  const arboles = Math.ceil(kgYr / 21);
+  document.getElementById('yr-num').textContent = kgYr.toFixed(1) + ' kg CO2e';
+  document.getElementById('yr-sub').textContent = `Necesitas plantar ${arboles} árboles para compensarlo al año`;
+
+  // Equivalencias
+  document.getElementById('eq-auto').textContent = (total / 120).toFixed(1) + ' km';
+  document.getElementById('eq-nf').textContent   = (total / 36).toFixed(1) + ' hrs';
+
+  // Trees visual
+  renderTrees(arboles);
+  document.getElementById('trees-lbl').textContent = `${arboles} árboles para absorber tu CO2 anual`;
+
+  // Tips
+  renderTips();
+
+  gotoPage(5);
+}
+
+function renderTrees(n) {
+  const svg = document.getElementById('trees-svg');
+  const show = Math.min(n, 8);
+  let h = '';
+  for (let i = 0; i < 8; i++) {
+    const x = 4 + i * 15.5;
+    const on = i < show;
+    const c1 = on ? '#A0D068' : 'rgba(255,255,255,.18)';
+    const c2 = on ? '#6A9040' : 'rgba(255,255,255,.12)';
+    h += `<ellipse cx="${x+6}" cy="22" rx="6.5" ry="10" fill="${c1}"/>
+          <rect x="${x+4}" y="30" width="4" height="10" rx="2" fill="${c2}"/>`;
+  }
+  svg.innerHTML = h;
+}
+
+function renderTips() {
+  const tips = [];
+  if (rv('tt') >= 1.5)
+    tips.push(['TikTok', 'TikTok genera mas CO2 por minuto que YouTube porque el video corto requiere mas datos por segundo. Prueba el modo límite de tiempo.']);
+  if (rv('ytq') === 72)
+    tips.push(['Calidad de video', 'Bajar YouTube de 4K a 720p reduce tu huella de video hasta un 50% sin diferencia notable en pantalla de celular.']);
+  if (rv('noch') >= 3)
+    tips.push(['Carga nocturna', 'Desconecta el cargador cuando llegue al 100%. Cargar de noche innecesariamente daña la batería y gasta energía.']);
+  if (rv('gmdev') === 160)
+    tips.push(['Consola de videojuegos', 'Las consolas consumen hasta 160W. Activa el apagado automático en la configuración para cuando no estes jugando.']);
+  if (rv('vl') >= 1.5)
+    tips.push(['Videollamadas', 'Apagar tu cámara en Zoom o Meet reduce las emisiones de esa llamada hasta un 96%. Activala solo cuando sea necesario.']);
+  const disp = document.querySelector('input[name="disp"]:checked');
+  if (disp && disp.value === 'basura')
+    tips.push(['Residuos electronicos', 'No tires electrónicos a la basura. Contienen metales pesados. En Tlaxcala puedes llevarlos a puntos de reciclaje REMSA o Electrico+.']);
+  tips.push(['Modo oscuro', 'Activa el modo oscuro en tus apps. Las pantallas OLED consumen hasta un 40% menos energia con fondos oscuros.']);
+  tips.push(['Comparte', 'Comparte esta calculadora, un reto para reducir la huella digital puede tener mucho impacto colectivo.']);
+
+  const panel = document.getElementById('tips-panel');
+  panel.innerHTML = '<div class="tips-heading">Recomendaciones</div>' +
+    tips.slice(0, 5).map(([n, t]) => `
+      <div class="tip-card">
+        <div class="tip-name">
+          <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 19.82L5.71 21l1-2 .91.3C9 18 11 17 14 17c3 0 5.88-1.62 7.11-4.11C22.33 10.7 20.5 7.4 17 8z"/></svg>
+          ${n}
+        </div>
+        <div>${t}</div>
+      </div>`).join('');
+}
+
+function resetCalc() {
+  document.querySelectorAll('input[type="radio"]').forEach(r => { r.checked = r.defaultChecked; });
+  ['phones','laptops','tablets','tvs','consolas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = el.defaultValue; sliderUpdate(id, el.value, []); }
+  });
+  gotoPage(0);
+}
+</script>
+</body>
+</html>
